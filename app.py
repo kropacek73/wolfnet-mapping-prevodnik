@@ -4,10 +4,16 @@ import re
 import datetime
 import io
 
-# Nastavení vzhledu stránky
-st.set_page_config(page_title="Převodník sítě Wolfnet", page_icon="🌐")
+# Nastavení vzhledu stránky a záložky v prohlížeči
+st.set_page_config(page_title="Wolfnet - Převodník dat z mappingu", page_icon="🌐")
 
-st.title("🌐 Převodník sítě Wolfnet (CSV na Excel)")
+# --- HLAVIČKA APLIKACE S POPISY ---
+st.title("🌐 Wolfnet - Převodník dat z mappingu")
+st.markdown("""
+**Autor:** Honza Kropáček  
+**Datum:** 19.05.2026  
+---
+""")
 st.write("Nahrajte exportovaný CSV soubor a stáhněte si upravený Excel.")
 
 # 1. Webový prvek pro nahrání souboru
@@ -25,14 +31,12 @@ if vstupni_soubor is not None:
         df['mesto'] = df['mesto'].str.replace(r'^\d{3}\s?\d{2}\s+', '', regex=True)
 
         # --- Určení typu připojení (kabel / WIFI) ---
-        # Nejdříve všem nastavíme výchozí hodnotu "WIFI"
         df['druh_pripojeni'] = 'WIFI'
         
-        # Následně tam, kde je CATV, FTTB nebo FTTH, to přepíšeme na "kabel"
         mask = df['_state'].str.contains('CATV|FTTB|FTTH', na=False, regex=True)
         df.loc[mask, 'druh_pripojeni'] = 'kabel'
 
-        # --- Očištění textů (nyní se aplikuje na VŠECHNY řádky, tedy i na WIFI) ---
+        # --- Očištění textů (pro všechny řádky, tedy i pro WIFI) ---
         df['_state'] = df['_state'].str.replace('Připojeno - ', '', regex=False)
         df['_state'] = df['_state'].str.replace(r' od \d{2}\.\d{2}\.\d{4}', '', regex=True)
         df['_state'] = df['_state'].str.replace(r'\s*\(.*?\)', '', regex=True)
@@ -69,7 +73,7 @@ if vstupni_soubor is not None:
         (max_row, max_col) = df.shape
         worksheet.autofilter(0, 0, max_row, max_col - 1)
         
-        # Aplikace formátu procent (nyní hledáme sloupec pod jeho novým českým názvem)
+        # Aplikace formátu procent podle nového českého názvu sloupce
         idx_penetration = df.columns.get_loc('penetrace v %') 
         pct_format = workbook.add_format({'num_format': '0.00%'})
         worksheet.set_column(idx_penetration, idx_penetration, None, pct_format)
